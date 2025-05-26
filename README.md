@@ -18,4 +18,5 @@
   <img src="https://img.shields.io/badge/Zustand-433E38?style=for-the-badge" alt="Zustand">
   <img src="https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white" alt="ESLint">
   <img src="https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=black" alt="Prettier">
+   <img src="https://img.shields.io/badge/TOML-9C4221?style=for-the-badge&logo=toml&logoColor=white" alt="TOML">
 </p>
