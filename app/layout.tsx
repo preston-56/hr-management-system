@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-import { ThemeProvider } from "next-themes";
+import { ThemeProviderClient } from "@/components/theme/theme-provider";
+import { ModeToggle } from "@/components/theme/mode-toggle";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -27,11 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>{children}</AuthProvider>
-        </ThemeProvider>{" "}
+        <ThemeProviderClient>
+          <AuthProvider>
+            <div className="relative min-h-screen">
+              <div className="absolute top-4 right-20 z-50">
+                <ModeToggle />
+              </div>
+              {children}
+            </div>
+          </AuthProvider>
+        </ThemeProviderClient>
       </body>
     </html>
   );
