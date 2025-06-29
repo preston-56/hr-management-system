@@ -19,24 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface Job {
-  id: string
-  title: string
-  department: string
-  location: string
-  type: string
-  level: string
-  salaryMin: string
-  salaryMax: string
-  currency: string
-  description: string
-  requirements: string
-  responsibilities: string
-  benefits: string
-  applicationDeadline: string
-  contactEmail: string
-  status: string
-}
+import { Job, JobStatus, JobType, JobLevel, JobLocation } from "@/types"
 
 interface EditJobDialogProps {
   open: boolean
@@ -49,19 +32,21 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
     id: "",
     title: "",
     department: "",
-    location: "",
-    type: "",
-    level: "",
-    salaryMin: "",
-    salaryMax: "",
+    location: "Remote" as JobLocation,
+    type: "Full-time" as JobType,
+    status: "Draft" as JobStatus,
+    level: "Entry" as JobLevel,
+    applicants: 0,
+    posted: "",
+    salaryMin: 0,
+    salaryMax: 0,
     currency: "USD",
     description: "",
-    requirements: "",
-    responsibilities: "",
-    benefits: "",
+    requirements: [],
+    benefits: [],
+    responsibilities: [],
     applicationDeadline: "",
     contactEmail: "",
-    status: "",
   })
 
   useEffect(() => {
@@ -77,8 +62,17 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
     onOpenChange(false)
   }
 
-  const updateFormData = (field: keyof Job, value: string) => {
+  const updateFormData = (field: keyof Job, value: string | number | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // Helper functions to convert between string and array formats
+  const arrayToString = (arr: string[] | undefined): string => {
+    return arr ? arr.join('\n') : ''
+  }
+
+  const stringToArray = (str: string): string[] => {
+    return str.split('\n').filter(line => line.trim() !== '')
   }
 
   if (!job) return null
@@ -140,7 +134,7 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                       <Label htmlFor="location">Work Location *</Label>
                       <Select
                         value={formData.location}
-                        onValueChange={(value) => updateFormData("location", value)}
+                        onValueChange={(value: JobLocation) => updateFormData("location", value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select location" />
@@ -153,24 +147,48 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="type">Employment Type *</Label>
-                      <Select value={formData.type} onValueChange={(value) => updateFormData("type", value)}>
+                      <Select
+                        value={formData.type}
+                        onValueChange={(value: JobType) => updateFormData("type", value)}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Full-time">Full Time</SelectItem>
-                          <SelectItem value="Part-time">Part Time</SelectItem>
+                          <SelectItem value="Full-time">Full-time</SelectItem>
+                          <SelectItem value="Part-time">Part-time</SelectItem>
                           <SelectItem value="Contract">Contract</SelectItem>
-                          <SelectItem value="Intern">Internship</SelectItem>
+                          <SelectItem value="Internship">Internship</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Job Level *</Label>
+                      <Select
+                        value={formData.level}
+                        onValueChange={(value: JobLevel) => updateFormData("level", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Entry">Entry</SelectItem>
+                          <SelectItem value="Mid">Mid</SelectItem>
+                          <SelectItem value="Senior">Senior</SelectItem>
+                          <SelectItem value="Lead">Lead</SelectItem>
+                          <SelectItem value="Executive">Executive</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="status">Status *</Label>
-                      <Select value={formData.status} onValueChange={(value) => updateFormData("status", value)}>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value: JobStatus) => updateFormData("status", value)}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -189,7 +207,7 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                         id="salaryMin"
                         type="number"
                         value={formData.salaryMin}
-                        onChange={(e) => updateFormData("salaryMin", e.target.value)}
+                        onChange={(e) => updateFormData("salaryMin", parseInt(e.target.value) || 0)}
                       />
                     </div>
                     <div className="space-y-2">
@@ -198,7 +216,7 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                         id="salaryMax"
                         type="number"
                         value={formData.salaryMax}
-                        onChange={(e) => updateFormData("salaryMax", e.target.value)}
+                        onChange={(e) => updateFormData("salaryMax", parseInt(e.target.value) || 0)}
                       />
                     </div>
                     <div className="space-y-2">
@@ -228,32 +246,33 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="description">Job Description *</Label>
+                    <Label htmlFor="description">Job Description</Label>
                     <Textarea
                       id="description"
-                      value={formData.description}
+                      value={formData.description || ""}
                       onChange={(e) => updateFormData("description", e.target.value)}
                       rows={5}
-                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="responsibilities">Key Responsibilities *</Label>
+                    <Label htmlFor="responsibilities">Key Responsibilities (one per line) *</Label>
                     <Textarea
                       id="responsibilities"
-                      value={formData.responsibilities}
-                      onChange={(e) => updateFormData("responsibilities", e.target.value)}
+                      value={arrayToString(formData.responsibilities)}
+                      onChange={(e) => updateFormData("responsibilities", stringToArray(e.target.value))}
                       rows={5}
                       required
+                      placeholder="Enter each responsibility on a new line"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="benefits">Benefits & Perks</Label>
+                    <Label htmlFor="benefits">Benefits & Perks (one per line)</Label>
                     <Textarea
                       id="benefits"
-                      value={formData.benefits}
-                      onChange={(e) => updateFormData("benefits", e.target.value)}
+                      value={arrayToString(formData.benefits)}
+                      onChange={(e) => updateFormData("benefits", stringToArray(e.target.value))}
                       rows={4}
+                      placeholder="Enter each benefit on a new line"
                     />
                   </div>
                 </CardContent>
@@ -268,13 +287,13 @@ export function EditJobDialog({ open, onOpenChange, job }: EditJobDialogProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="requirements">Requirements & Qualifications *</Label>
+                    <Label htmlFor="requirements">Requirements & Qualifications (one per line)</Label>
                     <Textarea
                       id="requirements"
-                      value={formData.requirements}
-                      onChange={(e) => updateFormData("requirements", e.target.value)}
+                      value={arrayToString(formData.requirements)}
+                      onChange={(e) => updateFormData("requirements", stringToArray(e.target.value))}
                       rows={6}
-                      required
+                      placeholder="Enter each requirement on a new line"
                     />
                   </div>
                 </CardContent>
