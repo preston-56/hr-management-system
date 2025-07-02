@@ -30,7 +30,7 @@ export const jobService = {
   getAll: async (): Promise<JobPosting[]> => {
     return prisma.jobPosting.findMany({
       orderBy: {
-        created_at: "desc", // Use created_at instead of posted
+        created_at: "desc",
       },
     })
   },
