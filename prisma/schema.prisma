@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id                 String              @id @default(uuid())
+  employee_id        String              @unique
+  first_name         String
+  last_name          String
+  email              String              @unique
+  phone              String
+  position           String
+  department         String
+  manager            String
+  start_date         DateTime
+  status             EmployeeStatus
+  basic_salary       Float
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  leaveRequests      LeaveRequest[]
+  performanceReviews PerformanceReview[] @relation("EmployeeReviews")
+  reviewsGiven       PerformanceReview[] @relation("ReviewerReviews")
+}
+
+model LeaveRequest {
+  id          String      @id @default(uuid())
+  employee_id String
+  leave_type  String
+  start_date  DateTime
+  end_date    DateTime
+  days        Int
+  reason      String
+  status      LeaveStatus
+  reliever    String
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  employee    Employee    @relation(fields: [employee_id], references: [id])
+}
+
+model JobPosting {
+  id           String    @id @default(uuid())
+  title        String
+  department   String
+  location     String
+  type         String
+  description  String
+  requirements String
+  status       JobStatus
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+}
+
+model PerformanceReview {
+  id               String       @id @default(uuid())
+  employee_id      String
+  reviewer_id      String
+  review_period    String
+  review_type      String
+  overall_rating   Int
+  goals            String
+  achievements     String
+  development_plan String
+  status           ReviewStatus
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  employee         Employee     @relation("EmployeeReviews", fields: [employee_id], references: [id])
+  reviewer         Employee     @relation("ReviewerReviews", fields: [reviewer_id], references: [id])
+}
+
+enum EmployeeStatus {
+  Active
+  On_Leave
+  Inactive
+}
+
+enum LeaveStatus {
+  Pending
+  Approved
+  Rejected
+}
+
+enum JobStatus {
+  Active
+  Closed
+  Draft
+}
+
+enum ReviewStatus {
+  Draft
+  In_Progress
+  Completed
+}
