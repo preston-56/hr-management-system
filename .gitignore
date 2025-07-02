@@ -40,5 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
+# Prisma generated/cached files
 .prisma/
+node_modules/.prisma/
+
+# Keep schema and migrations tracked
+!prisma/schema.prisma
+!prisma/migrations/
