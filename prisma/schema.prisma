@@ -7,6 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  password     String
+  name         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
 model Employee {
   id                 String              @id @default(uuid())
   employee_id        String              @unique
@@ -43,16 +66,37 @@ model LeaveRequest {
 }
 
 model JobPosting {
-  id           String    @id @default(uuid())
-  title        String
-  department   String
-  location     String
-  type         String
-  description  String
-  requirements String
-  status       JobStatus
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
+  id                   String      @id @default(uuid())
+  title                String
+  department           String
+  location             JobLocation
+  type                 JobType
+  status               JobStatus   @default(Draft)
+  level                JobLevel
+  posted               DateTime    @default(now())
+  salaryMin            Int
+  salaryMax            Int
+  currency             String      @default("USD")
+  description          String?
+  requirements         String[]
+  benefits             String[]
+  responsibilities     String[]
+  applicationDeadline  DateTime
+  contactEmail         String
+  created_at           DateTime    @default(now())
+  updated_at           DateTime    @updatedAt
+
+  applications         Application[]
+}
+
+model Application {
+  id          String      @id @default(uuid())
+  jobId       String
+  applicantId String
+  status      String      @default("pending")
+  appliedAt   DateTime    @default(now())
+
+  job         JobPosting  @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
 
 model PerformanceReview {
@@ -88,6 +132,27 @@ enum JobStatus {
   Active
   Closed
   Draft
+}
+
+enum JobType {
+  FullTime    @map("Full-time")
+  PartTime    @map("Part-time")
+  Contract
+  Internship
+}
+
+enum JobLevel {
+  Entry
+  Mid
+  Senior
+  Lead
+  Executive
+}
+
+enum JobLocation {
+  Remote
+  Office
+  Hybrid
 }
 
 enum ReviewStatus {
