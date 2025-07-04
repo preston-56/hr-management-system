@@ -1,8 +1,7 @@
 "use client"
-
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { apiClient, type User, TokenManager } from "./api"
+import { type User } from "@/types"
 
 interface AuthContextType {
   user: User | null
@@ -15,10 +14,47 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+class TokenManager {
+  private static readonly ACCESS_TOKEN_KEY = "access_token"
+  private static readonly REFRESH_TOKEN_KEY = "refresh_token"
+
+  static setToken(token: string): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.ACCESS_TOKEN_KEY, token)
+    }
+  }
+
+  static getToken(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(this.ACCESS_TOKEN_KEY)
+    }
+    return null
+  }
+
+  static setRefreshToken(token: string): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, token)
+    }
+  }
+
+  static getRefreshToken(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(this.REFRESH_TOKEN_KEY)
+    }
+    return null
+  }
+
+  static clearTokens(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(this.ACCESS_TOKEN_KEY)
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY)
+    }
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-
   const isAuthenticated = !!user
 
   useEffect(() => {
@@ -33,11 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await apiClient.getCurrentUser()
-      if (response.success && response.data) {
-        setUser(response.data)
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData)
       } else {
-        // clear tokens if not in demo mode
         const token = TokenManager.getToken()
         if (!token || !token.startsWith("demo_")) {
           TokenManager.clearTokens()
@@ -45,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Auth check failed:", error)
-      // Don't clear demo tokens
       const token = TokenManager.getToken()
       if (!token || !token.startsWith("demo_")) {
         TokenManager.clearTokens()
@@ -57,17 +97,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiClient.login(email, password)
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (response.success && response.data) {
-        TokenManager.setToken(response.data.accessToken)
-        TokenManager.setRefreshToken(response.data.refreshToken)
-        setUser(response.data.user)
+      const data = await response.json()
+
+      if (response.ok) {
+        TokenManager.setToken(data.accessToken)
+        TokenManager.setRefreshToken(data.refreshToken)
+        setUser(data.user)
         return { success: true }
       } else {
         return {
           success: false,
-          error: response.error || "Login failed",
+          error: data.error || "Login failed",
         }
       }
     } catch (error) {
@@ -80,7 +128,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await apiClient.logout()
+      const token = TokenManager.getToken()
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      }
     } catch (error) {
       console.error("Logout error:", error)
     } finally {
@@ -91,9 +147,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const response = await apiClient.getCurrentUser()
-      if (response.success && response.data) {
-        setUser(response.data)
+      const token = TokenManager.getToken()
+      if (!token) return
+
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData)
       }
     } catch (error) {
       console.error("Failed to refresh user:", error)
