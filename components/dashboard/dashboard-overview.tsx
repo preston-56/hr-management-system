@@ -22,7 +22,7 @@ import { LeaveApplicationDialog } from "@/components/leave/leave-application-dia
 import { CreateAppraisalDialog } from "@/components/performance/create-appraisal-dialog";
 import { ScheduleTrainingDialog } from "@/components/training/schedule-training-dialog";
 import { dashboardService } from "@/lib/services/dashboard";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-store";
 
 interface DashboardStats {
   totalEmployees: number;
