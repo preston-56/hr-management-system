@@ -1,7 +1,7 @@
 // Type definitions for Prisma mock methods
 type MockedPrismaMethod = jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>
 
-// Type definitions for Prisma mock based on your schema
+// Type definitions for Prisma mock based on schema
 interface MockPrismaClient {
   user: {
     findUnique: MockedPrismaMethod
@@ -65,7 +65,6 @@ interface MockPrismaClient {
   $transaction: MockedPrismaMethod
 }
 
-// Mock Prisma Client based on your schema
 const mockPrisma: MockPrismaClient = {
   user: {
     findUnique: jest.fn(),
