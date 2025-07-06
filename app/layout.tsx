@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProviderClient } from "@/components/theme/theme-provider";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 
@@ -35,14 +34,12 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <ThemeProviderClient>
-          <AuthProvider>
             <div className="relative min-h-screen">
               <div className="absolute top-4 right-20 z-50">
                 <ModeToggle />
               </div>
               {children}
             </div>
-          </AuthProvider>
         </ThemeProviderClient>
       </body>
     </html>
