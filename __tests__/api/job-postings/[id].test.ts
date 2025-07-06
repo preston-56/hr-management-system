@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeEach } from '@jest/globals'
 import { GET, PUT, DELETE } from '@/app/api/job-postings/[id]/route'
-import {
-  createMockRequest,
-  expectJsonResponse,
-  expectErrorResponse
-} from '../../utils/test-helpers'
 
 import type { MockPrismaClient } from '@/jest.setup'
+import { createMockRequest, expectErrorResponse, expectJsonResponse } from '@/__tests__/utils/test-helpers'
 
 declare global {
   // eslint-disable-next-line no-var
