@@ -1,32 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { Loader2 } from "lucide-react"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-store";
+import { Loader2 } from "lucide-react";
+import { UserRole } from "@/types";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  requiredRoles?: Array<"admin" | "hr_manager" | "hr_staff" | "employee">
+  children: React.ReactNode;
+  requiredRoles?: UserRole[];
 }
 
-export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
-  const { user, isLoading, isAuthenticated } = useAuth()
-  const router = useRouter()
+export function ProtectedRoute({
+  children,
+  requiredRoles
+}: ProtectedRouteProps) {
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login")
+      router.push("/login");
     }
-  }, [isLoading, isAuthenticated, router])
+  }, [isLoading, isAuthenticated, router]);
 
   useEffect(() => {
-    if (user && requiredRoles && !requiredRoles.includes(user.role)) {
-      router.push("/unauthorized")
+    if (
+      user &&
+      requiredRoles &&
+      user.role &&
+      !requiredRoles.includes(user.role as UserRole)
+    ) {
+      router.push("/unauthorized");
     }
-  }, [user, requiredRoles, router])
+  }, [user, requiredRoles, router]);
 
   if (isLoading) {
     return (
@@ -36,23 +45,28 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
-  if (requiredRoles && user && !requiredRoles.includes(user.role)) {
+  if (
+    requiredRoles &&
+    user &&
+    user.role &&
+    !requiredRoles.includes(user.role as UserRole)
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">You &apos;t have permission to access this page.</p>
+          <p className="text-muted-foreground">{`You don't have permission to access this page.`}</p>
         </div>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
