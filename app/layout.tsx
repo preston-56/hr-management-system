@@ -34,12 +34,12 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <ThemeProviderClient>
-            <div className="relative min-h-screen">
-              <div className="absolute top-4 right-20 z-50">
-                <ModeToggle />
-              </div>
-              {children}
+          <div className="relative min-h-screen">
+            <div className="absolute top-4 right-20 z-50">
+              <ModeToggle />
             </div>
+            {children}
+          </div>
         </ThemeProviderClient>
       </body>
     </html>
