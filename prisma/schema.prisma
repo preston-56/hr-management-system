@@ -48,6 +48,7 @@ model Employee {
   leaveRequests      LeaveRequest[]
   performanceReviews PerformanceReview[] @relation("EmployeeReviews")
   reviewsGiven       PerformanceReview[] @relation("ReviewerReviews")
+  trainingEnrollments TrainingEnrollment[]
 }
 
 model LeaveRequest {
@@ -116,6 +117,63 @@ model PerformanceReview {
   reviewer         Employee     @relation("ReviewerReviews", fields: [reviewer_id], references: [id])
 }
 
+model TrainingProgram {
+  id                  String              @id @default(uuid())
+  title               String
+  description         String
+  category            String
+  duration_hours      Int
+  max_participants    Int
+  budget_allocated    Float
+  trainer_name        String?
+  trainer_email       String?
+  is_external         Boolean             @default(false)
+  status              TrainingStatus      @default(Draft)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+
+  sessions            TrainingSession[]
+  enrollments         TrainingEnrollment[]
+}
+
+model TrainingSession {
+  id                  String              @id @default(uuid())
+  program_id          String
+  title               String
+  start_date          DateTime
+  end_date            DateTime
+  location            String
+  max_participants    Int
+  cost_per_participant Float
+  status              SessionStatus       @default(Scheduled)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+
+  program             TrainingProgram     @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  enrollments         TrainingEnrollment[]
+}
+
+model TrainingEnrollment {
+  id                  String              @id @default(uuid())
+  employee_id         String
+  program_id          String
+  session_id          String?
+  enrollment_date     DateTime            @default(now())
+  status              EnrollmentStatus    @default(Enrolled)
+  completion_date     DateTime?
+  certificate_issued  Boolean             @default(false)
+  feedback_rating     Int?
+  feedback_comments   String?
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+
+  employee            Employee            @relation(fields: [employee_id], references: [id])
+  program             TrainingProgram     @relation(fields: [program_id], references: [id])
+  session             TrainingSession?    @relation(fields: [session_id], references: [id])
+
+  @@unique([employee_id, program_id, session_id])
+}
+
 enum EmployeeStatus {
   Active
   On_Leave
@@ -159,4 +217,26 @@ enum ReviewStatus {
   Draft
   In_Progress
   Completed
+}
+
+enum TrainingStatus {
+  Draft
+  Active
+  Completed
+  Cancelled
+}
+
+enum SessionStatus {
+  Scheduled
+  In_Progress
+  Completed
+  Cancelled
+}
+
+enum EnrollmentStatus {
+  Enrolled
+  In_Progress
+  Completed
+  Dropped
+  No_Show
 }
