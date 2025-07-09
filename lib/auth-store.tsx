@@ -126,18 +126,28 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     try {
-      const token = TokenManager.getToken();
-      if (token) {
-        await fetch("/api/auth/logout", {
+      const refreshToken = TokenManager.getRefreshToken();
+
+      if (refreshToken) {
+        const response = await fetch("/api/auth/logout", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ refreshToken })
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Logout API error:", errorData);
+          // Continue with cleanup even if API fails
+        }
       }
     } catch (error) {
       console.error("Logout error:", error);
+      // Continue with cleanup even if API fails
     } finally {
+      // Always clean up local state regardless of API response
       set({ user: null, isAuthenticated: false });
       TokenManager.clearTokens();
     }
