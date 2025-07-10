@@ -2,22 +2,26 @@ import type { Config } from 'jest'
 
 const config: Config = {
   clearMocks: true,
+
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageProvider: 'v8',
+  coverageProvider: 'v8', // Use V8 for faster coverage
+
   testEnvironment: 'node',
   preset: 'ts-jest',
 
+  // Support path aliases like @/ or ~/
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^~/(.*)$': '<rootDir>/$1',
   },
 
-  // Transpile TS with ts-jest (no extra config needed unless you override defaults)
+  // Transform TypeScript files using ts-jest
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
 
+  // Load global setup for mocks and test config
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   testMatch: [
@@ -25,19 +29,25 @@ const config: Config = {
     '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
 
+  // Include coverage from app code, ignore tests and type files
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.test.{ts,tsx}',
-    '!src/**/*.spec.{ts,tsx}',
+    '{app,components,lib,hooks,types}/**/*.{ts,tsx}',
+    '!**/*.d.ts',
+    '!**/__tests__/**',
+    '!**/*.test.{ts,tsx}',
+    '!**/*.spec.{ts,tsx}',
   ],
 
+  // Ignore test files in build output
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/build/'],
 
-  moduleDirectories: ['node_modules', '<rootDir>/src'],
+  // Resolve modules from node_modules and root
+  moduleDirectories: ['node_modules', '<rootDir>'],
 
+  // Recognize these file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 
+  // Minimum coverage thresholds
   coverageThreshold: {
     global: {
       branches: 80,
